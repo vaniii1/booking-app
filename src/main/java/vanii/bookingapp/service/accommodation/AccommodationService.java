@@ -1,6 +1,7 @@
 package vanii.bookingapp.service.accommodation;
 
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import vanii.bookingapp.dto.accomodation.AccommodationRequestDto;
 import vanii.bookingapp.dto.accomodation.AccommodationResponseDto;
 import vanii.bookingapp.dto.accomodation.AccommodationSearchParameters;
@@ -11,11 +12,12 @@ public interface AccommodationService {
 
     AccommodationResponseDto getById(Long id);
 
-    List<AccommodationResponseDto> getAll();
+    List<AccommodationResponseDto> getAll(Pageable pageable);
 
-    List<AccommodationWithoutAmenityIdsDto> getAllByAmenityId(Long amenityId);
+    List<AccommodationWithoutAmenityIdsDto> getAllByAmenityId(Pageable pageable, Long amenityId);
 
-    List<AccommodationResponseDto> search(AccommodationSearchParameters searchParameters);
+    List<AccommodationResponseDto> search(Pageable pageable,
+                                          AccommodationSearchParameters searchParameters);
 
     AccommodationResponseDto update(AccommodationRequestDto requestDto, Long id);
 

@@ -34,7 +34,11 @@ public interface AccommodationMapper {
         if (requestDto.amenityIds() != null) {
             Set<Amenity> amenities = requestDto.amenityIds()
                     .stream()
-                    .map(Amenity::new)
+                    .map(id -> {
+                        Amenity amenity = new Amenity();
+                        amenity.setId(id);
+                        return amenity;
+                    })
                     .collect(Collectors.toSet());
             accommodation.setAmenities(amenities);
         }

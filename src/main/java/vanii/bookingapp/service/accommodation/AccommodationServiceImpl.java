@@ -2,8 +2,8 @@ package vanii.bookingapp.service.accommodation;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vanii.bookingapp.dto.accomodation.AccommodationRequestDto;
@@ -14,48 +14,54 @@ import vanii.bookingapp.mapper.AccommodationMapper;
 import vanii.bookingapp.model.Accommodation;
 import vanii.bookingapp.repository.accommodation.AccommodationRepository;
 import vanii.bookingapp.repository.accommodation.AccommodationSpecificationBuilder;
+import vanii.bookingapp.repository.amenity.AmenityRepository;
 
 @Service
 @RequiredArgsConstructor
 public class AccommodationServiceImpl implements AccommodationService {
-    private final AccommodationRepository repository;
+    private final AccommodationRepository accommodationRepository;
+    private final AmenityRepository amenityRepository;
     private final AccommodationMapper mapper;
     private final AccommodationSpecificationBuilder specificationBuilder;
 
     @Override
     public AccommodationResponseDto save(AccommodationRequestDto requestDto) {
+        requestDto.amenityIds().forEach(this::verifyValidAmenity);
         Accommodation model = mapper.toModel(requestDto);
-        return mapper.toDto(repository.save(model));
+        return mapper.toDto(accommodationRepository.save(model));
     }
 
     @Override
     public AccommodationResponseDto getById(Long id) {
-        return repository.findById(id)
-                .map(mapper::toDto)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Can't find Accommodation with id: " + id));
+        return mapper.toDto(getAccommodationOrThrowException(id));
     }
 
     @Override
-    public List<AccommodationResponseDto> getAll() {
-        return repository.findAll()
+    public List<AccommodationResponseDto> getAll(Pageable pageable) {
+        return accommodationRepository.findAll(pageable)
                 .stream()
                 .map(mapper::toDto)
                 .toList();
     }
 
     @Override
-    public List<AccommodationWithoutAmenityIdsDto> getAllByAmenityId(Long amenityId) {
-        return repository.findAccommodationsByAmenityId(amenityId)
+    public List<AccommodationWithoutAmenityIdsDto> getAllByAmenityId(
+            Pageable pageable,
+            Long amenityId
+    ) {
+        return accommodationRepository.findAccommodationsByAmenityId(pageable, amenityId)
                 .stream()
                 .map(mapper::toDtoWithoutAmenities)
                 .toList();
     }
 
     @Override
-    public List<AccommodationResponseDto> search(AccommodationSearchParameters searchParameters) {
+    public List<AccommodationResponseDto> search(
+            Pageable pageable,
+            AccommodationSearchParameters searchParameters
+    ) {
         Specification<Accommodation> specification = specificationBuilder.build(searchParameters);
-        return repository.findAll(specification)
+        return accommodationRepository.findAll(specification, pageable)
                 .stream()
                 .map(mapper::toDto)
                 .toList();
@@ -63,17 +69,26 @@ public class AccommodationServiceImpl implements AccommodationService {
 
     @Override
     public AccommodationResponseDto update(AccommodationRequestDto requestDto, Long id) {
-        Optional<Accommodation> optionalAccommodation = repository.findById(id);
-        if (optionalAccommodation.isPresent()) {
-            Accommodation model = optionalAccommodation.get();
-            mapper.updateModel(model, requestDto);
-            return mapper.toDto(repository.save(model));
-        }
-        throw new EntityNotFoundException("Can't find Accommodation with id: " + id);
+        Accommodation model = getAccommodationOrThrowException(id);
+        mapper.updateModel(model, requestDto);
+        return mapper.toDto(accommodationRepository.save(model));
     }
 
     @Override
     public void delete(Long id) {
-        repository.deleteById(id);
+        getAccommodationOrThrowException(id);
+        accommodationRepository.deleteById(id);
+    }
+
+    private void verifyValidAmenity(Long amenityId) {
+        if (!amenityRepository.existsById(amenityId)) {
+            throw new EntityNotFoundException("Can't find amenity with id: "
+                    + amenityId);
+        }
+    }
+
+    private Accommodation getAccommodationOrThrowException(Long id) {
+        return accommodationRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Can't find accommodation with id: " + id));
     }
 }

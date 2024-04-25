@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-roles-into-roles-table
+      author: vanii
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: role_name
+                  value: CUSTOMER
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: role_name
+                  value: MANAGER
