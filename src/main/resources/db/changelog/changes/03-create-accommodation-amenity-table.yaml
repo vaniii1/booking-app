@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-accommodation-amenity-table
+      author: vanii
+      changes:
+        - createTable:
+            tableName: accommodation_amenity
+            columns:
+              - column:
+                  name: accommodation_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    referencedTableName: accommodations
+                    referencedColumnNames: id
+                    foreignKeyName: fk_accommodation_amenity_accommodation_id
+              - column:
+                  name: amenity_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    referencedTableName: amenities
+                    referencedColumnNames: id
+                    foreignKeyName: fk_accommodation_amenity_amenity_id
