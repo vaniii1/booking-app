@@ -60,7 +60,4 @@ public class Accommodation {
         CONDO,
         VACATION_HOME
     }
-
 }
-
-
