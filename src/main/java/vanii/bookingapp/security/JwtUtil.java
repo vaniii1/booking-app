@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtil {
-    @Value("${jwt.expiration:30000}")
+    @Value("${jwt.expiration:3000000}")
     private Long expiration;
     private SecretKey secret;
 

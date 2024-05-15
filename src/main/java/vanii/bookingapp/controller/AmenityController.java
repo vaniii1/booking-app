@@ -22,7 +22,7 @@ import vanii.bookingapp.dto.amenity.AmenityResponseDto;
 import vanii.bookingapp.service.amenity.AmenityService;
 
 @Tag(name = "Amenity Management",
-        description = "Endpoints indicate specific actions with amenities")
+        description = "Endpoints indicate specific actions with Amenities")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/amenities")
@@ -41,21 +41,21 @@ public class AmenityController {
     }
 
     @Operation(summary = "Get Amenity",
-            description = "Retrieve an amenity with a specific id value")
+            description = "Retrieve an Amenity with a specific Id value")
     @GetMapping("/{id}")
     public AmenityResponseDto getAmenityById(@PathVariable Long id) {
         return amenityService.getById(id);
     }
 
     @Operation(summary = "Get all Amenities",
-            description = "Retrieve all amenities stored in the database")
+            description = "Retrieve all Amenities stored in the database")
     @GetMapping
     public List<AmenityResponseDto> getAllAmenities(Pageable pageable) {
         return amenityService.getAll(pageable);
     }
 
     @Operation(summary = "Update Amenity",
-            description = "Update an amenity with a specific id value")
+            description = "Update an Amenity with a specific Id value")
     @PreAuthorize("hasAuthority('MANAGER')")
     @PutMapping("/{id}")
     public AmenityResponseDto updateAmenity(@RequestBody AmenityRequestDto requestDto,
@@ -64,7 +64,7 @@ public class AmenityController {
     }
 
     @Operation(summary = "Delete Amenity",
-            description = "Delete an amenity with a specific id value")
+            description = "Delete an Amenity with a specific Id value")
     @PreAuthorize("hasAuthority('MANAGER')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

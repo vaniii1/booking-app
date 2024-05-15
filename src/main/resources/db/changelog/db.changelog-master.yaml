@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/changes/06-insert-roles-into-roles-table.yaml
   - include:
       file: db/changelog/changes/07-create-user-role-table.yaml
+  - include:
+      file: db/changelog/changes/08-create-bookings-table.yaml

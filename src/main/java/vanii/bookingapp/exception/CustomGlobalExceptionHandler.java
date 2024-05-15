@@ -2,6 +2,7 @@ package vanii.bookingapp.exception;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -42,7 +44,11 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
     @ExceptionHandler({
             UserExistsException.class,
             EntityNotFoundException.class,
-            JwtException.class
+            JwtException.class,
+            AccessDeniedException.class,
+            IllegalArgumentException.class,
+            EntityCannotBeUsedException.class,
+            DateTimeException.class
     })
     public ResponseEntity<Object> handleRuntimeException(
             RuntimeException e

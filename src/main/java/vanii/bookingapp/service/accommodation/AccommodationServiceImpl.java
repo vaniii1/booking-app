@@ -26,7 +26,9 @@ public class AccommodationServiceImpl implements AccommodationService {
 
     @Override
     public AccommodationResponseDto save(AccommodationRequestDto requestDto) {
-        requestDto.amenityIds().forEach(this::verifyValidAmenity);
+        if (requestDto.amenityIds() != null) {
+            requestDto.amenityIds().forEach(this::verifyValidAmenity);
+        }
         Accommodation model = mapper.toModel(requestDto);
         return mapper.toDto(accommodationRepository.save(model));
     }
@@ -76,19 +78,18 @@ public class AccommodationServiceImpl implements AccommodationService {
 
     @Override
     public void delete(Long id) {
-        getAccommodationOrThrowException(id);
-        accommodationRepository.deleteById(id);
+        accommodationRepository.delete(getAccommodationOrThrowException(id));
     }
 
     private void verifyValidAmenity(Long amenityId) {
         if (!amenityRepository.existsById(amenityId)) {
-            throw new EntityNotFoundException("Can't find amenity with id: "
+            throw new EntityNotFoundException("Can't find Amenity with id: "
                     + amenityId);
         }
     }
 
     private Accommodation getAccommodationOrThrowException(Long id) {
         return accommodationRepository.findById(id).orElseThrow(() ->
-                new EntityNotFoundException("Can't find accommodation with id: " + id));
+                new EntityNotFoundException("Can't find Accommodation with id: " + id));
     }
 }
