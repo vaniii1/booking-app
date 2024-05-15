@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vanii.bookingapp.dto.user.RegistrationRequestDto;
@@ -42,6 +44,12 @@ public class UserServiceImpl implements UserService {
         }
         user.setRoles(roles);
         return mapper.toDto(userRepository.save(user));
+    }
+
+    @Override
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (User) authentication.getPrincipal();
     }
 
     private void verifyValidEmail(String email) throws UserExistsException {

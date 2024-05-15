@@ -23,6 +23,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import vanii.bookingapp.exception.EntityCannotBeUsedException;
 
 @Data
 @Entity
@@ -61,6 +62,16 @@ public class Accommodation {
         VACATION_HOME
     }
 
+    public void reduceByOne() {
+        if (availability <= 0) {
+            throw new EntityCannotBeUsedException(
+                    "There is no available Accommodations. AccommodationId: " + id
+            );
+        }
+        availability--;
+    }
+
+    public void increaseByOne() {
+        availability++;
+    }
 }
-
-

@@ -6,6 +6,7 @@ import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import vanii.bookingapp.config.MapperConfig;
 import vanii.bookingapp.dto.accomodation.AccommodationRequestDto;
@@ -54,5 +55,12 @@ public interface AccommodationMapper {
                     .collect(Collectors.toSet());
             responseDto.setAmenityIds(amenityIds);
         }
+    }
+
+    @Named("accommodationById")
+    default Accommodation accommodationById(Long id) {
+        Accommodation accommodation = new Accommodation();
+        accommodation.setId(id);
+        return accommodation;
     }
 }
