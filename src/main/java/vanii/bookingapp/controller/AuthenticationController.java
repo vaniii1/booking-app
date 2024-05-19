@@ -17,7 +17,7 @@ import vanii.bookingapp.security.AuthenticationService;
 import vanii.bookingapp.service.user.UserService;
 
 @Tag(name = "User Management",
-        description = "Endpoints indicate specific actions with users")
+        description = "Endpoints indicate specific actions with Users")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")

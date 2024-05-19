@@ -79,14 +79,14 @@ public class AccommodationController {
     }
 
     @Operation(summary = "Update Accommodation",
-            description = "Update an accommodation with a specific id value")
+            description = "Update an Accommodation with a specific Id value")
     @PreAuthorize("hasAuthority('MANAGER')")
     @PutMapping("/{id}")
     public AccommodationResponseDto updateAccommodation(
-            @RequestBody AccommodationRequestDto requestDto,
+            @RequestBody AccommodationRequestDto request,
             @PathVariable Long id
     ) {
-        return accommodationService.update(requestDto, id);
+        return accommodationService.update(request, id);
     }
 
     @Operation(summary = "Delete Accommodation",
