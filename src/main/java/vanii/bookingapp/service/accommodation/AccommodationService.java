@@ -6,6 +6,7 @@ import vanii.bookingapp.dto.accomodation.AccommodationRequestDto;
 import vanii.bookingapp.dto.accomodation.AccommodationResponseDto;
 import vanii.bookingapp.dto.accomodation.AccommodationSearchParameters;
 import vanii.bookingapp.dto.accomodation.AccommodationWithoutAmenityIdsDto;
+import vanii.bookingapp.model.Accommodation;
 
 public interface AccommodationService {
     AccommodationResponseDto save(AccommodationRequestDto requestDto);
@@ -22,4 +23,6 @@ public interface AccommodationService {
     AccommodationResponseDto update(AccommodationRequestDto requestDto, Long id);
 
     void delete(Long id);
+
+    Accommodation getAccommodationOrThrowException(Long accommodationId);
 }

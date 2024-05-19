@@ -1,5 +1,6 @@
 package vanii.bookingapp.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,8 +12,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
+
+import java.awt.print.Book;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,6 +45,10 @@ public class Accommodation {
     private Type type;
     private String location;
     private String size;
+    @OneToMany(mappedBy = "accommodation", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Booking> bookings = new HashSet<>();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @ManyToMany(fetch = FetchType.EAGER)

@@ -15,6 +15,6 @@ public interface AmenityMapper {
 
     AmenityResponseDto toDto(Amenity amenity);
 
-    void updateModel(@MappingTarget Amenity amenity,
-                        AmenityRequestDto requestDto);
+    void updateAmenity(@MappingTarget Amenity amenity,
+                       AmenityRequestDto requestDto);
 }
