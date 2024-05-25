@@ -1,12 +1,10 @@
 package vanii.bookingapp.service.booking;
 
 import jakarta.persistence.EntityNotFoundException;
-
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -53,7 +51,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingResponseDto> getBookingsOfCurrentUser() {
-        List<Booking> list = bookingRepository.getBookingsByUserId(userService.getCurrentUser().getId());
+        List<Booking> list = bookingRepository.getBookingsByUserId(
+                userService.getCurrentUser().getId());
         changeStatusOfBookingListIfNecessary(list);
         return list.stream()
                 .map(bookingMapper::toDto)
