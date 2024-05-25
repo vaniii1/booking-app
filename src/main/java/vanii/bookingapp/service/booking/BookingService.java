@@ -1,6 +1,5 @@
 package vanii.bookingapp.service.booking;
 
-import java.math.BigDecimal;
 import java.util.List;
 import vanii.bookingapp.dto.booking.BookingRequestDto;
 import vanii.bookingapp.dto.booking.BookingResponseDto;
