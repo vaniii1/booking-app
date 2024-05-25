@@ -3,58 +3,66 @@ package vanii.bookingapp.service.booking;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vanii.bookingapp.dto.booking.BookingRequestDto;
 import vanii.bookingapp.dto.booking.BookingResponseDto;
 import vanii.bookingapp.dto.booking.UpdateStatusDto;
+import vanii.bookingapp.exception.UnpaidBookingException;
 import vanii.bookingapp.mapper.BookingMapper;
 import vanii.bookingapp.model.Accommodation;
 import vanii.bookingapp.model.Booking;
+import vanii.bookingapp.model.Payment;
 import vanii.bookingapp.model.User;
 import vanii.bookingapp.repository.accommodation.AccommodationRepository;
 import vanii.bookingapp.repository.booking.BookingRepository;
+import vanii.bookingapp.repository.payment.PaymentRepository;
 import vanii.bookingapp.service.accommodation.AccommodationService;
+import vanii.bookingapp.service.notification.NotificationService;
 import vanii.bookingapp.service.user.UserService;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
+    private final NotificationService notificationService;
     private final UserService userService;
     private final AccommodationService accommodationService;
     private final BookingRepository bookingRepository;
     private final AccommodationRepository accommodationRepository;
+    private final PaymentRepository paymentRepository;
     private final BookingMapper bookingMapper;
 
     @Override
     public BookingResponseDto save(BookingRequestDto requestDto) {
-        checkIfDateIsCorrect(requestDto.checkInDate(), requestDto.checkOutDate());
+        checkIfUserCanCreateNewBooking();
+        validateDates(requestDto.checkInDate(), requestDto.checkOutDate());
         Booking booking = bookingMapper.toModel(requestDto);
         booking.setStatus(Booking.Status.PENDING);
         booking.setUser(new User().setId(userService.getCurrentUser().getId()));
-        reduceAvailabilityOfAccommodationById(requestDto.accommodationId());
-        Booking save = bookingRepository.save(booking);
-        return bookingMapper.toDto(save);
+        adjustAvailabilityOfAccommodationById(requestDto.accommodationId(), -1);
+        Booking savedBooking = bookingRepository.save(booking);
+        notificationService.notifyNewBooking(savedBooking);
+        return bookingMapper.toDto(savedBooking);
     }
 
     @Override
     public BookingResponseDto getBookingById(Long id) {
         verifyBookingIdForCurrentUser(id);
-        changeStatusOfBookingIfNecessary(id);
         return bookingMapper.toDto(getBookingOrThrowException(id));
     }
 
     @Override
     public List<BookingResponseDto> getBookingsOfCurrentUser() {
-        List<Booking> list = bookingRepository.getBookingsByUserId(
-                userService.getCurrentUser().getId());
-        changeStatusOfBookingListIfNecessary(list);
-        return list.stream()
+        return bookingRepository.getBookingsByUserId(
+                userService.getCurrentUser().getId())
+                .stream()
                 .map(bookingMapper::toDto)
                 .toList();
     }
@@ -65,7 +73,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingOrThrowException(id);
         bookingMapper.updateBooking(booking, request);
         handleAccommodationChange(booking, request);
-        checkIfDateIsCorrect(booking.getCheckInDate(), booking.getCheckOutDate());
+        validateDates(booking.getCheckInDate(), booking.getCheckOutDate());
         return bookingMapper.toDto(bookingRepository.save(booking));
     }
 
@@ -74,8 +82,6 @@ public class BookingServiceImpl implements BookingService {
             Long userId,
             Booking.Status status
     ) {
-        List<Booking> list = bookingRepository.getBookingsByUserId(userId);
-        changeStatusOfBookingListIfNecessary(list);
         return bookingRepository.getBookingsByUserIdAndStatus(userId, status).stream()
                 .map(bookingMapper::toDto)
                 .toList();
@@ -86,17 +92,12 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingOrThrowException(id);
         Booking.Status newStatus = status.status();
         Booking.Status oldStatus = booking.getStatus();
+        Integer oldAvailability = booking.getAccommodation().getAvailability();
         if (newStatus != oldStatus) {
-            if (isPendingOrConfirmed(oldStatus)
-                    && booking.getAccommodation() != null) {
-                increaseAvailabilityOfAccommodationById(booking.getAccommodation().getId());
-            }
-            if (isPendingOrConfirmed(newStatus)
-                    && booking.getAccommodation() != null) {
-                reduceAvailabilityOfAccommodationById(booking.getAccommodation().getId());
-            }
+            handleStatusChange(booking, oldStatus, newStatus);
+            handleAccommodationNotification(booking.getAccommodation(), oldAvailability);
         }
-        booking.setStatus(status.status());
+        booking.setStatus(newStatus);
         bookingRepository.save(booking);
     }
 
@@ -104,10 +105,13 @@ public class BookingServiceImpl implements BookingService {
     public void delete(Long id) {
         verifyBookingIdForCurrentUser(id);
         Booking booking = getBookingOrThrowException(id);
-        if (isPendingOrConfirmed(booking.getStatus())
-                && booking.getAccommodation() != null) {
-            increaseAvailabilityOfAccommodationById(booking.getAccommodation().getId());
+        if (isPendingOrConfirmed(booking.getStatus())) {
+            adjustAvailabilityOfAccommodationById(booking.getAccommodation().getId(), 1);
+            notificationService.notifyAccommodationRelease(booking.getAccommodation());
         }
+        booking.setStatus(Booking.Status.CANCELED);
+        bookingRepository.save(booking);
+        notificationService.notifyBookingCancellation(booking);
         bookingRepository.delete(booking);
     }
 
@@ -117,44 +121,38 @@ public class BookingServiceImpl implements BookingService {
                 new EntityNotFoundException("Can't find Booking with id: " + id));
     }
 
-    private void changeStatusOfBookingIfNecessary(Long bookingId) {
-        Booking booking = getBookingOrThrowException(bookingId);
-        booking.changeStatusIfCheckOutDateIsExpired();
-        bookingRepository.save(booking);
+    @Scheduled(cron = "0 0 7 * * ?")
+    public void checkExpiredBookings() {
+        List<Booking> list = bookingRepository.getBookingsByPendingAndConfirmedStatuses();
+        List<Booking> newExpiredBookings = new ArrayList<>();
+        for (Booking booking : list) {
+            if (booking.getCheckOutDate().isBefore(LocalDate.now())) {
+                booking.setStatus(Booking.Status.EXPIRED);
+                notificationService.notifyAccommodationRelease(booking.getAccommodation());
+                bookingRepository.save(booking);
+                newExpiredBookings.add(booking);
+            }
+        }
+        if (newExpiredBookings.isEmpty()) {
+            notificationService.notifyNoExpiredBookingsToday();
+        } else {
+            notificationService.notifyExpiredBookings(newExpiredBookings);
+        }
     }
 
-    private void changeStatusOfBookingListIfNecessary(List<Booking> list) {
-        list.stream().map(Booking::getId)
-                .forEach(this::changeStatusOfBookingIfNecessary);
-    }
-
-    private boolean isPendingOrConfirmed(Booking.Status status) {
-        return status == Booking.Status.PENDING || status == Booking.Status.CONFIRMED;
-    }
-
-    private void reduceAvailabilityOfAccommodationById(Long id) {
+    private void adjustAvailabilityOfAccommodationById(Long id, int num) {
         Accommodation accommodation = accommodationService.getAccommodationOrThrowException(id);
-        accommodation.reduceByOne();
+        accommodation.adjustAvailability(num);
         accommodationRepository.save(accommodation);
     }
 
-    private void increaseAvailabilityOfAccommodationById(Long id) {
-        Accommodation accommodation = accommodationService.getAccommodationOrThrowException(id);
-        accommodation.increaseByOne();
-        accommodationRepository.save(accommodation);
-    }
-
-    private void checkIfDateIsCorrect(LocalDate checkInDate, LocalDate checkOutDate) {
+    private void validateDates(LocalDate checkInDate, LocalDate checkOutDate) {
         if (LocalDate.now().isAfter(checkInDate)) {
-            throw new DateTimeException(String.format("""
-                    CheckInDate cannot be before today.\s
-                    CheckInDate: %s.""", checkInDate));
+            throw new DateTimeException("Check-in date cannot be in the past: " + checkInDate);
         }
         if (checkOutDate.isBefore(checkInDate)) {
-            throw new DateTimeException(String.format("""
-                    CheckOutDate cannot be before checkInDate.\s
-                    CheckInDate: %s.\s
-                    CheckOutDate: %s.""", checkInDate, checkOutDate));
+            throw new DateTimeException("Check-out date cannot be before check-in date: "
+                    + checkInDate + " - " + checkOutDate);
         }
     }
 
@@ -166,18 +164,53 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void handleAccommodationChange(Booking booking, BookingRequestDto request) {
-        if (booking.getAccommodation() != null
-                && !Objects.equals(request.accommodationId(), booking.getAccommodation().getId())
-                && isPendingOrConfirmed(booking.getStatus())) {
-            increaseAvailabilityOfAccommodationById(booking.getAccommodation().getId());
-            reduceAvailabilityOfAccommodationById(request.accommodationId());
+    private void handleAccommodationChange(
+            Booking oldBooking,
+            BookingRequestDto request
+    ) {
+        if (!Objects.equals(request.accommodationId(), oldBooking.getAccommodation().getId())
+                && isPendingOrConfirmed(oldBooking.getStatus())) {
+            adjustAvailabilityOfAccommodationById(oldBooking.getAccommodation().getId(), 1);
+            adjustAvailabilityOfAccommodationById(request.accommodationId(), -1);
+            notificationService.notifyAccommodationRelease(oldBooking.getAccommodation());
         }
-        setAccommodationToBookingById(booking, request.accommodationId());
+        oldBooking.setAccommodation(accommodationService
+                .getAccommodationOrThrowException(request.accommodationId()));
     }
 
-    private void setAccommodationToBookingById(Booking booking, Long accommodationId) {
-        booking.setAccommodation(accommodationService
-                .getAccommodationOrThrowException(accommodationId));
+    private void handleStatusChange(
+            Booking booking,
+            Booking.Status oldStatus,
+            Booking.Status newStatus
+    ) {
+        Long accommodationId = booking.getAccommodation().getId();
+        if (isPendingOrConfirmed(oldStatus)) {
+            adjustAvailabilityOfAccommodationById(accommodationId, 1);
+        }
+        if (isPendingOrConfirmed(newStatus)) {
+            adjustAvailabilityOfAccommodationById(accommodationId, -1);
+        }
+    }
+
+    private void handleAccommodationNotification(
+            Accommodation accommodation,
+            Integer oldAvailability
+    ) {
+        if (oldAvailability < accommodation.getAvailability()) {
+            notificationService.notifyAccommodationRelease(accommodation);
+        }
+    }
+
+    private boolean isPendingOrConfirmed(Booking.Status status) {
+        return status == Booking.Status.PENDING || status == Booking.Status.CONFIRMED;
+    }
+
+    private void checkIfUserCanCreateNewBooking() {
+        if (paymentRepository.existsByStatusAndUserId(
+                Payment.Status.PENDING, userService.getCurrentUser().getId())
+        ) {
+            throw new UnpaidBookingException("You have an unpaid Booking. Please pay for"
+                    + " the existing Booking and then you can create new Booking");
+        }
     }
 }

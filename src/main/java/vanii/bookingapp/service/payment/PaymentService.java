@@ -8,7 +8,7 @@ import vanii.bookingapp.dto.payment.PaymentResponseDto;
 
 public interface PaymentService {
 
-    ResponseEntity<String> createPaymentAndReturnUrl(PaymentRequestDto request)
+    ResponseEntity<PaymentResponseDto> createPayment(PaymentRequestDto request)
             throws StripeException;
 
     List<PaymentResponseDto> getPaymentsForCurrentUser();
@@ -18,4 +18,6 @@ public interface PaymentService {
     ResponseEntity<PaymentResponseDto> successPayment(String sessionId);
 
     ResponseEntity<String> cancelPayment(String sessionId);
+
+    ResponseEntity<PaymentResponseDto> renewPaymentSession(String sessionId) throws StripeException;
 }
