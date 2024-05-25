@@ -97,5 +97,4 @@ public class AccommodationController {
     public void deleteAccommodationById(@PathVariable Long id) {
         accommodationService.delete(id);
     }
-
 }

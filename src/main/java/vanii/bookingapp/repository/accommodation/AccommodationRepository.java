@@ -12,5 +12,4 @@ public interface AccommodationRepository extends JpaRepository<Accommodation, Lo
 
     @Query("FROM Accommodation a JOIN FETCH a.amenities aa WHERE aa.id = :amenityId")
     List<Accommodation> findAccommodationsByAmenityId(Pageable pageable, Long amenityId);
-
 }
