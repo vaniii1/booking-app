@@ -113,9 +113,4 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.findBySessionId(sessionId).orElseThrow(() ->
                 new EntityNotFoundException("Can't find Payment with sessionId: " + sessionId));
     }
-
-    private void saveBookingAndAccommodationEntities(Booking booking, Accommodation accommodation) {
-        bookingRepository.save(booking);
-
-    }
 }
