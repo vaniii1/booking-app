@@ -48,7 +48,8 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
             AccessDeniedException.class,
             IllegalArgumentException.class,
             EntityCannotBeUsedException.class,
-            DateTimeException.class
+            DateTimeException.class,
+            CanceledPaymentException.class
     })
     public ResponseEntity<Object> handleRuntimeException(
             RuntimeException e

@@ -26,8 +26,8 @@ public interface AccommodationMapper {
 
     AccommodationWithoutAmenityIdsDto toDtoWithoutAmenities(Accommodation accommodation);
 
-    void updateModel(@MappingTarget Accommodation accommodation,
-                     AccommodationRequestDto requestDto);
+    void updateAccommodation(@MappingTarget Accommodation accommodation,
+                             AccommodationRequestDto requestDto);
 
     @AfterMapping
     default void setAmenities(@MappingTarget Accommodation accommodation,
@@ -59,8 +59,6 @@ public interface AccommodationMapper {
 
     @Named("accommodationById")
     default Accommodation accommodationById(Long id) {
-        Accommodation accommodation = new Accommodation();
-        accommodation.setId(id);
-        return accommodation;
+        return new Accommodation().setId(id);
     }
 }

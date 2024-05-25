@@ -38,7 +38,7 @@ public class AmenityServiceImpl implements AmenityService {
     @Override
     public AmenityResponseDto update(AmenityRequestDto requestDto, Long id) {
         Amenity model = getAmenityOrThrowException(id);
-        mapper.updateModel(model, requestDto);
+        mapper.updateAmenity(model, requestDto);
         return mapper.toDto(repository.save(model));
     }
 
