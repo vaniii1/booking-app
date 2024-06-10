@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.hibernate.SessionException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -49,13 +50,14 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
             IllegalArgumentException.class,
             EntityCannotBeUsedException.class,
             DateTimeException.class,
-            CanceledPaymentException.class
+            UnpaidBookingException.class,
+            SessionException.class
     })
     public ResponseEntity<Object> handleRuntimeException(
             RuntimeException e
     ) {
         return ResponseEntity
-                .status(HttpStatus.NOT_ACCEPTABLE)
+                .status(HttpStatus.BAD_REQUEST)
                 .body(e.getMessage());
     }
 
