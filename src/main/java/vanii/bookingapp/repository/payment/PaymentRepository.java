@@ -11,4 +11,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("SELECT p FROM Payment p JOIN FETCH p.user u WHERE u.id = :userId")
     List<Payment> getAllByUserId(Long userId);
+
+    List<Payment> findAllByStatus(Payment.Status status);
+
+    boolean existsByStatusAndUserId(Payment.Status status, Long userId);
 }

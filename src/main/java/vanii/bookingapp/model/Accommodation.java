@@ -68,16 +68,12 @@ public class Accommodation {
         VACATION_HOME
     }
 
-    public void reduceByOne() {
-        if (availability <= 0) {
+    public void adjustAvailability(int num) {
+        int newAvailability = availability + num;
+        if (newAvailability < 0) {
             throw new EntityCannotBeUsedException(
-                    "There is no available Accommodations. AccommodationId: " + id
-            );
+                    "There is no available Accommodations. AccommodationId: " + id);
         }
-        availability--;
-    }
-
-    public void increaseByOne() {
-        availability++;
+        availability = newAvailability;
     }
 }
