@@ -74,7 +74,7 @@ public class Booking {
                 && accommodation != null
         ) {
             status = Status.EXPIRED;
-            accommodation.increaseByOne();
+            accommodation.adjustAvailability(1);
         }
     }
 }

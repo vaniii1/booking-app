@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vanii.bookingapp.dto.accomodation.AccommodationRequestDto;
 import vanii.bookingapp.dto.accomodation.AccommodationResponseDto;
 import vanii.bookingapp.dto.accomodation.AccommodationSearchParameters;
@@ -15,22 +16,26 @@ import vanii.bookingapp.model.Accommodation;
 import vanii.bookingapp.repository.accommodation.AccommodationRepository;
 import vanii.bookingapp.repository.accommodation.AccommodationSpecificationBuilder;
 import vanii.bookingapp.repository.amenity.AmenityRepository;
+import vanii.bookingapp.service.notification.NotificationService;
 
 @Service
 @RequiredArgsConstructor
 public class AccommodationServiceImpl implements AccommodationService {
+    private final NotificationService notificationService;
     private final AccommodationRepository accommodationRepository;
     private final AmenityRepository amenityRepository;
     private final AccommodationMapper mapper;
     private final AccommodationSpecificationBuilder specificationBuilder;
 
     @Override
+    @Transactional
     public AccommodationResponseDto save(AccommodationRequestDto requestDto) {
         if (requestDto.amenityIds() != null) {
             requestDto.amenityIds().forEach(this::verifyValidAmenity);
         }
-        Accommodation model = mapper.toModel(requestDto);
-        return mapper.toDto(accommodationRepository.save(model));
+        Accommodation accommodation = accommodationRepository.save(mapper.toModel(requestDto));
+        notificationService.notifyNewAccommodation(accommodation);
+        return mapper.toDto(accommodation);
     }
 
     @Override

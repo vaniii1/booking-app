@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import vanii.bookingapp.dto.payment.PaymentRequestDto;
 import vanii.bookingapp.dto.payment.PaymentResponseDto;
@@ -32,11 +30,10 @@ public class PaymentController {
     @Operation(summary = "Create new Payment",
             description = "Create a new Payment with certain amount and bookingId")
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<String> createBookingPayment(
+    public ResponseEntity<PaymentResponseDto> createBookingPayment(
             @RequestBody @Valid PaymentRequestDto request
     ) throws StripeException {
-        return paymentService.createPaymentAndReturnUrl(request);
+        return paymentService.createPayment(request);
     }
 
     @Operation(summary = "Successful response",
@@ -55,6 +52,14 @@ public class PaymentController {
             @RequestParam("session_id") String sessionId
     ) {
         return paymentService.cancelPayment(sessionId);
+    }
+
+    @Operation(summary = "Renew Payment",
+            description = "Generates new Payment by SessionId if previous was Expired")
+    @PostMapping("/renew")
+    public ResponseEntity<PaymentResponseDto> renewPayment(@RequestParam String sessionId)
+            throws StripeException {
+        return paymentService.renewPaymentSession(sessionId);
     }
 
     @Operation(summary = "Get Payments for current User",
