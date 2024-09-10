@@ -129,6 +129,7 @@ public class BookingServiceImpl implements BookingService {
             if (booking.getCheckOutDate().isBefore(LocalDate.now())) {
                 booking.setStatus(Booking.Status.EXPIRED);
                 notificationService.notifyAccommodationRelease(booking.getAccommodation());
+                adjustAvailabilityOfAccommodationById(booking.getAccommodation().getId(), 1);
                 bookingRepository.save(booking);
                 newExpiredBookings.add(booking);
             }
