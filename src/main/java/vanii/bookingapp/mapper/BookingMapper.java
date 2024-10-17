@@ -20,6 +20,7 @@ public interface BookingMapper {
     @Mapping(target = "userId", source = "user.id")
     BookingResponseDto toDto(Booking booking);
 
+    @Mapping(target = "accommodation.id", source = "accommodationId")
     void updateBooking(@MappingTarget Booking model,
                        BookingRequestDto requestDto);
 }

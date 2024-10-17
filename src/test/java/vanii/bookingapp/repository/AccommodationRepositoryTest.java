@@ -1,5 +1,7 @@
 package vanii.bookingapp.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +13,10 @@ import org.springframework.test.context.jdbc.Sql;
 import vanii.bookingapp.model.Accommodation;
 import vanii.bookingapp.repository.accommodation.AccommodationRepository;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class AccommodationRepositoryTest {
-    private static final Long ID = 1L;
+    private static final Long ID = 2L;
     @Autowired
     private AccommodationRepository accommodationRepository;
 

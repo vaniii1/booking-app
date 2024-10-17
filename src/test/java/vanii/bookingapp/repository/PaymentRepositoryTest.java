@@ -1,5 +1,11 @@
 package vanii.bookingapp.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,11 +14,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 import vanii.bookingapp.model.Payment;
 import vanii.bookingapp.repository.payment.PaymentRepository;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -27,7 +28,8 @@ import static org.junit.jupiter.api.Assertions.*;
         "classpath:database/accommodation/delete-accommodations.sql"},
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
 class PaymentRepositoryTest {
-    private static final Long ID = 1L;
+    private static final Long ID_SEVEN = 7L;
+    private static final Long ID_FOUR = 4L;
     @Autowired
     private PaymentRepository repository;
 
@@ -36,11 +38,11 @@ class PaymentRepositoryTest {
             Verify findBySessionId() method works
             """)
     void findBySessionId_ValidRequest_CorrectResponse() {
-        Optional<Payment> actual = repository.findBySessionId("4770");
+        Optional<Payment> actual = repository.findBySessionId("id4770");
 
         assertNotEquals(Optional.empty(), actual);
         assertEquals("url1007", actual.get().getSessionUrl());
-        assertEquals(ID, actual.get().getId());
+        assertEquals(ID_SEVEN, actual.get().getId());
     }
 
     @Test
@@ -48,7 +50,7 @@ class PaymentRepositoryTest {
             Verify getAllByUserId() method works
             """)
     void getAllByUserId_ValidRequest_CorrectResponse() {
-        List<Payment> actual = repository.getAllByUserId(ID);
+        List<Payment> actual = repository.getAllByUserId(ID_FOUR);
 
         assertEquals(2, actual.size());
         assertEquals("url1007", actual.get(0).getSessionUrl());
@@ -63,7 +65,7 @@ class PaymentRepositoryTest {
         List<Payment> actual = repository.findAllByStatus(Payment.Status.CANCELED);
 
         assertEquals(1, actual.size());
-        assertEquals("4770", actual.get(0).getSessionId());
+        assertEquals("id4770", actual.get(0).getSessionId());
     }
 
     @Test
@@ -71,7 +73,7 @@ class PaymentRepositoryTest {
             Verify existsByStatusAndUserId() method works 
             """)
     void existsByStatusAndUserId_ValidRequest_CorrectResponse() {
-        boolean actual = repository.existsByStatusAndUserId(Payment.Status.PENDING, ID);
+        boolean actual = repository.existsByStatusAndUserId(Payment.Status.PENDING, ID_FOUR);
 
         assertFalse(actual);
     }

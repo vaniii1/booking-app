@@ -169,14 +169,16 @@ public class BookingServiceImpl implements BookingService {
             Booking oldBooking,
             BookingRequestDto request
     ) {
-        if (!Objects.equals(request.accommodationId(), oldBooking.getAccommodation().getId())
-                && isPendingOrConfirmed(oldBooking.getStatus())) {
-            adjustAvailabilityOfAccommodationById(oldBooking.getAccommodation().getId(), 1);
-            adjustAvailabilityOfAccommodationById(request.accommodationId(), -1);
-            notificationService.notifyAccommodationRelease(oldBooking.getAccommodation());
+        if (request.accommodationId() != null) {
+            if (!Objects.equals(request.accommodationId(), oldBooking.getAccommodation().getId())
+                    && isPendingOrConfirmed(oldBooking.getStatus())) {
+                adjustAvailabilityOfAccommodationById(oldBooking.getAccommodation().getId(), 1);
+                adjustAvailabilityOfAccommodationById(request.accommodationId(), -1);
+                notificationService.notifyAccommodationRelease(oldBooking.getAccommodation());
+            }
+            oldBooking.setAccommodation(accommodationService
+                    .getAccommodationOrThrowException(request.accommodationId()));
         }
-        oldBooking.setAccommodation(accommodationService
-                .getAccommodationOrThrowException(request.accommodationId()));
     }
 
     private void handleStatusChange(

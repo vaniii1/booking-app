@@ -1,5 +1,9 @@
 package vanii.bookingapp.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +12,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 import vanii.bookingapp.model.User;
 import vanii.bookingapp.repository.user.UserRepository;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -31,7 +31,7 @@ class UserRepositoryTest {
         Optional<User> actual = repository.findByEmail("mail@ua");
 
         assertNotEquals(Optional.empty(), actual);
-        assertEquals(1, actual.get().getId());
+        assertEquals(4, actual.get().getId());
         assertEquals("mak", actual.get().getLastName());
     }
 }

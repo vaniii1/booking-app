@@ -1,6 +1,9 @@
 package vanii.bookingapp.repository;
 
-import liquibase.pro.packaged.I;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +13,6 @@ import org.springframework.test.context.jdbc.Sql;
 import vanii.bookingapp.model.Booking;
 import vanii.bookingapp.model.User;
 import vanii.bookingapp.repository.booking.BookingRepository;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -26,7 +25,9 @@ import static org.junit.jupiter.api.Assertions.*;
         "classpath:database/accommodation/delete-accommodations.sql"},
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
 class BookingRepositoryTest {
-    private static final Long ID = 1L;
+    private static final Long ID_FOUR = 4L;
+    private static final Long ID_FIVE = 5L;
+    private static final Long ID_FIFTEEN = 15L;
     @Autowired
     private BookingRepository repository;
 
@@ -35,12 +36,12 @@ class BookingRepositoryTest {
             Verify getBookingsByUserId() method works   
             """)
     void getBookingsByUserId_ValidRequest_CorrectResponse() {
-        List<Booking> actual = repository.getBookingsByUserId(ID);
+        List<Booking> actual = repository.getBookingsByUserId(ID_FOUR);
 
         assertEquals(2, actual.size());
-        assertEquals(1, actual.get(0).getId());
+        assertEquals(ID_FIVE, actual.get(0).getId());
         assertEquals(Booking.Status.PENDING, actual.get(0).getStatus());
-        assertEquals(2, actual.get(1).getId());
+        assertEquals(ID_FIFTEEN, actual.get(1).getId());
         assertEquals(Booking.Status.CANCELED, actual.get(1).getStatus());
     }
 
@@ -49,12 +50,12 @@ class BookingRepositoryTest {
             Verify getBookingsByUserIdAndStatus() method works 
             """)
     void getBookingsByUserIdAndStatus_ValidRequest_CorrectResponse() {
-        List<Booking> actual = repository.getBookingsByUserIdAndStatus(ID,
+        List<Booking> actual = repository.getBookingsByUserIdAndStatus(ID_FOUR,
                 Booking.Status.CANCELED);
 
         assertEquals(1, actual.size());
         assertEquals(Booking.Status.CANCELED, actual.get(0).getStatus());
-        assertEquals(2, actual.get(0).getId());
+        assertEquals(ID_FIFTEEN, actual.get(0).getId());
     }
 
     @Test
@@ -66,7 +67,7 @@ class BookingRepositoryTest {
 
         assertEquals(1, actual.size());
         assertEquals(Booking.Status.PENDING, actual.get(0).getStatus());
-        assertEquals(1, actual.get(0).getId());
+        assertEquals(ID_FIVE, actual.get(0).getId());
     }
 
     @Test
@@ -75,11 +76,11 @@ class BookingRepositoryTest {
             """)
     void existsByUserAndId_ValidRequest_CorrectResponse() {
         User user = new User()
-                .setId(ID)
+                .setId(ID_FOUR)
                 .setEmail("mail@ua")
                 .setFirstName("andrii")
                 .setLastName("mak");
-        boolean actual = repository.existsByUserAndId(user, ID);
+        boolean actual = repository.existsByUserAndId(user, ID_FIVE);
 
         assertTrue(actual);
     }
