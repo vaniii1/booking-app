@@ -33,7 +33,7 @@ public class AccommodationController {
 
     @Operation(summary = "Create new Accommodation",
             description = "Create a new Accommodation entity with the defined values")
-    @PreAuthorize("hasAuthority('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AccommodationResponseDto createAccommodation(
@@ -80,7 +80,7 @@ public class AccommodationController {
 
     @Operation(summary = "Update Accommodation",
             description = "Update an Accommodation with a specific Id value")
-    @PreAuthorize("hasAuthority('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/{id}")
     public AccommodationResponseDto updateAccommodation(
             @RequestBody AccommodationRequestDto request,
@@ -91,7 +91,7 @@ public class AccommodationController {
 
     @Operation(summary = "Delete Accommodation",
             description = "Delete an accommodation with a specific id value")
-    @PreAuthorize("hasAuthority('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAccommodationById(@PathVariable Long id) {

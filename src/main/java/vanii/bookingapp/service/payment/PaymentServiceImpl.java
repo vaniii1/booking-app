@@ -84,18 +84,12 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<PaymentResponseDto> getPaymentsForCurrentUser() {
-        return paymentRepository.getAllByUserId(userService.getCurrentUser().getId())
-                .stream()
-                .map(mapper::toDto)
-                .toList();
+        return getAllPaymentsByUserId(userService.getCurrentUser().getId());
     }
 
     @Override
     public List<PaymentResponseDto> getPaymentsForCertainUser(Long userId) {
-        return paymentRepository.getAllByUserId(userId)
-                .stream()
-                .map(mapper::toDto)
-                .toList();
+        return getAllPaymentsByUserId(userId);
     }
 
     @Override
@@ -161,5 +155,12 @@ public class PaymentServiceImpl implements PaymentService {
     private Payment getPaymentByIdOrThrowException(String sessionId) {
         return paymentRepository.findBySessionId(sessionId).orElseThrow(() ->
                 new EntityNotFoundException("Can't find Payment with sessionId: " + sessionId));
+    }
+
+    private List<PaymentResponseDto> getAllPaymentsByUserId(Long userId) {
+        return paymentRepository.getAllByUserId(userId)
+                .stream()
+                .map(mapper::toDto)
+                .toList();
     }
 }

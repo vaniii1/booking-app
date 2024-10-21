@@ -71,7 +71,7 @@ public class BookingController {
     @Operation(summary = "Get Bookings by Status and userId",
             description = "Retrieve Bookings by certain UserId"
                     + " and Status that are stored in the database")
-    @PreAuthorize("hasAuthority('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping
     public List<BookingResponseDto> getBookingsByUserIdAndStatus(
             @RequestParam("user_id") Long userId,
@@ -82,7 +82,7 @@ public class BookingController {
 
     @Operation(summary = "Update Status of Booking",
             description = "Update a Status of Booking with a specific id value")
-    @PreAuthorize("hasAuthority('MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @PatchMapping("/{id}")
     public void updateStatus(@PathVariable Long id,
                              @RequestBody UpdateStatusDto status) {
