@@ -57,8 +57,9 @@ public class PaymentController {
     @Operation(summary = "Renew Payment",
             description = "Generates new Payment by SessionId if previous was Expired")
     @PostMapping("/renew")
-    public ResponseEntity<PaymentResponseDto> renewPayment(@RequestParam String sessionId)
-            throws StripeException {
+    public ResponseEntity<PaymentResponseDto> renewPayment(
+            @RequestParam("session_id") String sessionId
+    ) throws StripeException {
         return paymentService.renewPaymentSession(sessionId);
     }
 

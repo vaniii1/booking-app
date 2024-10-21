@@ -17,5 +17,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("FROM Booking b WHERE b.status IN ('PENDING', 'CONFIRMED')")
     List<Booking> getBookingsByPendingAndConfirmedStatuses();
 
-    boolean existsByUserAndId(User user, Long id);
+    boolean existsByUserAndId(User user, Long bookingId);
 }

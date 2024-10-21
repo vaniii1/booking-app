@@ -19,7 +19,7 @@ public class StripeClient {
     private static final String SESSION_ID_VALUE = "{CHECKOUT_SESSION_ID}";
     private static final Long ONE_LONG = 1L;
     private static final String CURRENCY = "usd";
-    private static final BigDecimal MULTIPLIER = new BigDecimal("100");
+    private static final BigDecimal MULTIPLIER = new BigDecimal(100);
     private static final String PRODUCT_DATA_NAME = "Booking Payment";
     @Value("${server.port:defaultSecretKey}")
     private String serverPort;

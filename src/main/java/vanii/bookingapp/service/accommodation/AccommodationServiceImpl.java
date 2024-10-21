@@ -83,7 +83,8 @@ public class AccommodationServiceImpl implements AccommodationService {
 
     @Override
     public void delete(Long id) {
-        accommodationRepository.delete(getAccommodationOrThrowException(id));
+        getAccommodationOrThrowException(id);
+        accommodationRepository.deleteById(id);
     }
 
     @Override

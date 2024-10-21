@@ -31,8 +31,8 @@ public class AmenityController {
 
     @Operation(summary = "Create new Amenity",
             description = "Create a new Amenity entity with the defined values")
-    @PreAuthorize("hasAuthority('MANAGER')")
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
     public AmenityResponseDto createAmenity(
             @RequestBody @Valid AmenityRequestDto requestDto

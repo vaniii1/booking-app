@@ -129,6 +129,7 @@ public class BookingServiceImpl implements BookingService {
             if (booking.getCheckOutDate().isBefore(LocalDate.now())) {
                 booking.setStatus(Booking.Status.EXPIRED);
                 notificationService.notifyAccommodationRelease(booking.getAccommodation());
+                adjustAvailabilityOfAccommodationById(booking.getAccommodation().getId(), 1);
                 bookingRepository.save(booking);
                 newExpiredBookings.add(booking);
             }
@@ -168,14 +169,16 @@ public class BookingServiceImpl implements BookingService {
             Booking oldBooking,
             BookingRequestDto request
     ) {
-        if (!Objects.equals(request.accommodationId(), oldBooking.getAccommodation().getId())
-                && isPendingOrConfirmed(oldBooking.getStatus())) {
-            adjustAvailabilityOfAccommodationById(oldBooking.getAccommodation().getId(), 1);
-            adjustAvailabilityOfAccommodationById(request.accommodationId(), -1);
-            notificationService.notifyAccommodationRelease(oldBooking.getAccommodation());
+        if (request.accommodationId() != null) {
+            if (!Objects.equals(request.accommodationId(), oldBooking.getAccommodation().getId())
+                    && isPendingOrConfirmed(oldBooking.getStatus())) {
+                adjustAvailabilityOfAccommodationById(oldBooking.getAccommodation().getId(), 1);
+                adjustAvailabilityOfAccommodationById(request.accommodationId(), -1);
+                notificationService.notifyAccommodationRelease(oldBooking.getAccommodation());
+            }
+            oldBooking.setAccommodation(accommodationService
+                    .getAccommodationOrThrowException(request.accommodationId()));
         }
-        oldBooking.setAccommodation(accommodationService
-                .getAccommodationOrThrowException(request.accommodationId()));
     }
 
     private void handleStatusChange(

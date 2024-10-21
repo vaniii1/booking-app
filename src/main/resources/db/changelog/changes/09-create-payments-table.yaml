@@ -30,7 +30,7 @@ databaseChangeLog:
                   name: user_id
                   type: bigint
                   constraints:
-                    referencedTableName: accommodations
+                    referencedTableName: users
                     referencedColumnNames: id
                     foreignKeyName: fk_payments_user_id
                     nullable: false
