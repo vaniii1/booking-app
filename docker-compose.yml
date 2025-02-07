@@ -36,7 +36,6 @@ services:
         "stripe.ApiKey" : "${STRIPE_API_KEY}",
         "telegram.bot.token" : "${TELEGRAM_BOT_TOKEN}",
         "telegram.bot.username" : "${TELEGRAM_BOT_USERNAME}",
-        "admin.chat.id" : "${ADMIN_CHAT_ID}",
-        "server.port" : "4044"
+        "admin.chat.id" : "${ADMIN_CHAT_ID}"
       }'
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:${DEBUG_PORT}"
