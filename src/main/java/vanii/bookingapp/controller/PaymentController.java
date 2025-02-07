@@ -72,7 +72,7 @@ public class PaymentController {
 
     @Operation(summary = "Get Payments for certain User",
             description = "Get all payment for certain User by Id")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('MANAGER')")
     @GetMapping
     public List<PaymentResponseDto> getPaymentsForCertainUser(
             @RequestParam("user_id") Long userId) {

@@ -6,7 +6,6 @@ import com.stripe.param.checkout.SessionCreateParams;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -21,8 +20,7 @@ public class StripeClient {
     private static final String CURRENCY = "usd";
     private static final BigDecimal MULTIPLIER = new BigDecimal(100);
     private static final String PRODUCT_DATA_NAME = "Booking Payment";
-    @Value("${server.port:defaultSecretKey}")
-    private String serverPort;
+    private static final String serverPort = "8080";
 
     public Session createPaymentSession(BigDecimal amount) throws StripeException {
         long expiresAt = LocalDateTime.now().plusHours(22).toEpochSecond(ZoneOffset.UTC);

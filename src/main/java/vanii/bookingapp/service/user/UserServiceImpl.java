@@ -20,7 +20,7 @@ import vanii.bookingapp.repository.user.UserRepository;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private static final Pattern ADMIN_PATTERN = Pattern.compile("admin([1-9][0-9]?)@");
+    private static final Pattern ADMIN_PATTERN = Pattern.compile("admin([1-9][0-9]?)@.*");
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper mapper;

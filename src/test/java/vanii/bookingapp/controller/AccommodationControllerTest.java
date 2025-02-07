@@ -58,7 +58,7 @@ class AccommodationControllerTest {
     @DisplayName("""
             Verify createAccommodation() method works 
             """)
-    @WithMockUser(username = "manager", roles = "MANAGER")
+    @WithMockUser(username = "manager", authorities = "MANAGER")
     void createAccommodation_ValidRequest_CorrectResponse() throws Exception {
         AccommodationRequestDto requestDto = new AccommodationRequestDto(
                 "CONDO", "lovely st. 22", "50m2", null, BigDecimal.TEN, 2);
@@ -85,7 +85,7 @@ class AccommodationControllerTest {
     @DisplayName("""
             Verify getAccommodationById() method works
             """)
-    @WithMockUser(username = "user", roles = "CUSTOMER")
+    @WithMockUser(username = "user", authorities = "CUSTOMER")
     void getAccommodationById_ValidRequest_CorrectResponse() throws Exception {
         MvcResult result = mockMvc.perform(
                         get("/accommodations/10")
@@ -105,7 +105,7 @@ class AccommodationControllerTest {
     @DisplayName("""
             Verify getAllAccommodations() method works 
             """)
-    @WithMockUser(username = "bob", roles = "CUSTOMER")
+    @WithMockUser(username = "bob", authorities = "CUSTOMER")
     void getAllAccommodations_ValidRequest_CorrectResponse() throws Exception {
         AccommodationResponseDto[] expected =
                 new AccommodationResponseDto[] {firstResponse, secondResponse};
@@ -127,7 +127,7 @@ class AccommodationControllerTest {
     @DisplayName("""
             Verify getAllAccommodationsByAmenityId() method works 
             """)
-    @WithMockUser(username = "newuser", roles = "CUSTOMER")
+    @WithMockUser(username = "newuser", authorities = "CUSTOMER")
     void getAllAccommodationsByAmenityId_ValidRequest_CorrectResponse() throws Exception {
         AccommodationWithoutAmenityIdsDto expected = new AccommodationWithoutAmenityIdsDto(
                 firstResponse.getId(), firstResponse.getType(),
@@ -152,7 +152,7 @@ class AccommodationControllerTest {
     @DisplayName("""
             Verify searchAccommodations() method works
             """)
-    @WithMockUser(username = "customer", roles = "CUSTOMER")
+    @WithMockUser(username = "customer", authorities = "CUSTOMER")
     void searchAccommodations_ValidRequest_CorrectResponse() throws Exception {
         MvcResult result = mockMvc.perform(
                 get("/accommodations/search?type=CONDO")
@@ -171,7 +171,7 @@ class AccommodationControllerTest {
     @DisplayName("""
             Verify updateAccommodation() method works 
             """)
-    @WithMockUser(username = "john", roles = "MANAGER")
+    @WithMockUser(username = "john", authorities = "MANAGER")
     void updateAccommodation_ValidRequest_CorrectResponse() throws Exception {
         AccommodationRequestDto updateRequest = new AccommodationRequestDto(
                 "HOUSE", "wooden fridge st. 80",
@@ -205,7 +205,7 @@ class AccommodationControllerTest {
     @DisplayName("""
             Verify deleteAccommodationById() method works 
             """)
-    @WithMockUser(username = "martin", roles = "MANAGER")
+    @WithMockUser(username = "martin", authorities = "MANAGER")
     void deleteAccommodationById_ValidRequest_CorrectResponse() throws Exception {
         mockMvc.perform(
                 delete("/accommodations/10")

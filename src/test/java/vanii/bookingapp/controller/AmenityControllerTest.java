@@ -48,7 +48,7 @@ class AmenityControllerTest {
     @DisplayName("""
             Verify createAmenity() method works
             """)
-    @WithMockUser(username = "admin", roles = "MANAGER")
+    @WithMockUser(username = "admin", authorities = "MANAGER")
     void createAmenity_ValidRequest_CorrectResponse() throws Exception {
         AmenityRequestDto requestDto = new AmenityRequestDto(
                 "swimming pool", "deep pool on the backyard");
@@ -73,7 +73,7 @@ class AmenityControllerTest {
     @DisplayName("""
             Verify getAmenityById() method works
             """)
-    @WithMockUser(username = "newuser", roles = "CUSTOMER")
+    @WithMockUser(username = "newuser", authorities = "CUSTOMER")
     void getAmenityById_ValidRequest_CorrectResponse() throws Exception {
         MvcResult result = mockMvc.perform(
                         get("/amenities/20")
@@ -93,7 +93,7 @@ class AmenityControllerTest {
     @DisplayName("""
             Verify getAllAmenities() method works
             """)
-    @WithMockUser(username = "newuser", roles = "CUSTOMER")
+    @WithMockUser(username = "newuser", authorities = "CUSTOMER")
     void getAllAmenities_ValidRequest_CorrectResponse() throws Exception {
         AmenityResponseDto[] expected = new AmenityResponseDto[] {firstResponse, secondResponse};
 
@@ -116,7 +116,7 @@ class AmenityControllerTest {
     @DisplayName("""
             Verify updateAmenity() method works 
             """)
-    @WithMockUser(username = "admin", roles = "MANAGER")
+    @WithMockUser(username = "admin", authorities = "MANAGER")
     void updateAmenity_ValidRequest_CorrectResponse() throws Exception {
         AmenityRequestDto amenityRequestDto = new AmenityRequestDto(null, "works well");
         AmenityResponseDto expected = new AmenityResponseDto(
@@ -141,7 +141,7 @@ class AmenityControllerTest {
     @DisplayName("""
             Verify deleteAmenityById() method works
             """)
-    @WithMockUser(username = "manager", roles = "MANAGER")
+    @WithMockUser(username = "manager", authorities = "MANAGER")
     void deleteAmenityById_ValidRequest_CorrectResponse() throws Exception {
         mockMvc.perform(
                         delete("/amenities/2")

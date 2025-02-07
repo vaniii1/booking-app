@@ -31,8 +31,8 @@ public class AmenityController {
 
     @Operation(summary = "Create new Amenity",
             description = "Create a new Amenity entity with the defined values")
-    @PreAuthorize("hasRole('MANAGER')")
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
     public AmenityResponseDto createAmenity(
             @RequestBody @Valid AmenityRequestDto requestDto
@@ -56,7 +56,7 @@ public class AmenityController {
 
     @Operation(summary = "Update Amenity",
             description = "Update an Amenity with a specific Id value")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('MANAGER')")
     @PutMapping("/{id}")
     public AmenityResponseDto updateAmenity(@RequestBody AmenityRequestDto requestDto,
                                             @PathVariable Long id) {
@@ -65,7 +65,7 @@ public class AmenityController {
 
     @Operation(summary = "Delete Amenity",
             description = "Delete an Amenity with a specific Id value")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('MANAGER')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAmenityById(@PathVariable Long id) {

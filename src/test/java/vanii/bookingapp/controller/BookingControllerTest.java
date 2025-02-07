@@ -218,8 +218,8 @@ class BookingControllerTest {
 
         Authentication authentication =
                 new UsernamePasswordAuthenticationToken(mockUser, null,
-                        List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"),
-                                new SimpleGrantedAuthority("ROLE_MANAGER")));
+                        List.of(new SimpleGrantedAuthority("CUSTOMER"),
+                                new SimpleGrantedAuthority("MANAGER")));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         addUser(dataSource);
         addAccommodations(dataSource);

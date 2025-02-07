@@ -1,8 +1,7 @@
 services:
   postgresdb:
-    build:
-      context: .
-      dockerfile: Dockerfile-db
+    platform: linux/arm64
+    image: postgres
     restart: unless-stopped
     env_file: ./.env
     environment:
@@ -10,9 +9,9 @@ services:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
       - POSTGRES_DB=$POSTGRES_DATABASE
     ports:
-      - $POSTGRES_LOCAL_PORT:5432
+      - $POSTGRES_LOCAL_PORT:$POSTGRES_DOCKER_PORT
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 30s
       timeout: 30s
       retries: 3
@@ -28,10 +27,15 @@ services:
       - $DEBUG_PORT:$DEBUG_PORT
     environment:
       SPRING_APPLICATION_JSON: '{
-        "spring.datasource.url"  : "jdbc:postgresql://postgresdb:5432/$POSTGRES_DATABASE",
-        "spring.datasource.username" : "$POSTGRES_USER",
-        "spring.datasource.password" : "$POSTGRES_PASSWORD",
+        "spring.datasource.url"  : "jdbc:postgresql://postgresdb:${POSTGRES_DOCKER_PORT}/${POSTGRES_DATABASE}",
+        "spring.datasource.username" : "${POSTGRES_USER}",
+        "spring.datasource.password" : "${POSTGRES_PASSWORD}",
         "spring.datasource.driver-class-name" : "org.postgresql.Driver",
-        "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.PostgreSQLDialect"
+        "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.PostgreSQLDialect",
+        "jwt.secret.string" : "${JWT_SECRET_STRING}",
+        "stripe.ApiKey" : "${STRIPE_API_KEY}",
+        "telegram.bot.token" : "${TELEGRAM_BOT_TOKEN}",
+        "telegram.bot.username" : "${TELEGRAM_BOT_USERNAME}",
+        "admin.chat.id" : "${ADMIN_CHAT_ID}"
       }'
-      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:$DEBUG_PORT"
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:${DEBUG_PORT}"
