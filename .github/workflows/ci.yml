@@ -8,11 +8,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Create .env file for Spring
+        run: |
+          echo "JWT_SECRET_STRING=${{ secrets.JWT_SECRET_STRING }}" > .env
+          echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env
+          echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
+          echo "TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}" >> .env
+          echo "ADMIN_CHAT_ID=${{ secrets.ADMIN_CHAT_ID }}" >> .env
+
       - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
           java-version: '17'
           distribution: 'adopt'
           cache: maven
+
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots verify
