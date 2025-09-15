@@ -140,10 +140,8 @@ class AccommodationServiceTest {
         Page<Accommodation> page = new PageImpl<>(
                 accommodationList, pageable, accommodationList.size());
 
-        AccommodationSearchParameters searchParameters = new AccommodationSearchParameters(
-                new String[]{"HOUSE"}, new String[]{},new String[]{},
-                new String[]{},new String[]{},new String[]{});
-
+        AccommodationSearchParameters searchParameters = new AccommodationSearchParameters()
+                .setType(new String[] {"HOUSE"});
         Specification<Accommodation> specification = mock(Specification.class);
 
         when(specificationBuilder.build(searchParameters)).thenReturn(specification);

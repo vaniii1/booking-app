@@ -11,41 +11,41 @@ import vanii.bookingapp.repository.SpecificationProviderManager;
 @Component
 @RequiredArgsConstructor
 public class AccommodationSpecificationBuilder implements
-        SpecificationBuilder<Accommodation> {
+        SpecificationBuilder<Accommodation, AccommodationSearchParameters> {
     private final SpecificationProviderManager<Accommodation> manager;
 
     @Override
     public Specification<Accommodation> build(AccommodationSearchParameters searchParameters) {
         Specification<Accommodation> spec = Specification.where(null);
-        if (searchParameters.type() != null
-                && searchParameters.type().length > 0) {
+        if (searchParameters.getType() != null
+                && searchParameters.getType().length > 0) {
             spec = spec.and(manager
                     .getSpecificationProvider("type")
-                    .getSpecification(searchParameters.type()));
+                    .getSpecification(searchParameters.getType()));
         }
-        if (searchParameters.location() != null
-                && searchParameters.location().length > 0) {
+        if (searchParameters.getLocation() != null
+                && searchParameters.getLocation().length > 0) {
             spec = spec.and(manager
                     .getSpecificationProvider("location")
-                    .getSpecification(searchParameters.location()));
+                    .getSpecification(searchParameters.getLocation()));
         }
-        if (searchParameters.min_daily_rate() != null
-                && searchParameters.min_daily_rate().length > 0) {
+        if (searchParameters.getMinDailyRate() != null
+                && searchParameters.getMinDailyRate().length > 0) {
             spec = spec.and(manager
                     .getSpecificationProvider("minDailyRate")
-                    .getSpecification(searchParameters.min_daily_rate()));
+                    .getSpecification(searchParameters.getMinDailyRate()));
         }
-        if (searchParameters.max_daily_rate() != null
-                && searchParameters.max_daily_rate().length > 0) {
+        if (searchParameters.getMaxDailyRate() != null
+                && searchParameters.getMaxDailyRate().length > 0) {
             spec = spec.and(manager
                     .getSpecificationProvider("maxDailyRate")
-                    .getSpecification(searchParameters.max_daily_rate()));
+                    .getSpecification(searchParameters.getMaxDailyRate()));
         }
-        if (searchParameters.min_available() != null
-                && searchParameters.min_available().length > 0) {
+        if (searchParameters.getMinAvailable() != null
+                && searchParameters.getMinAvailable().length > 0) {
             spec = spec.and(manager
                     .getSpecificationProvider("minAvailable")
-                    .getSpecification(searchParameters.min_available()));
+                    .getSpecification(searchParameters.getMinAvailable()));
         }
         return spec;
     }
