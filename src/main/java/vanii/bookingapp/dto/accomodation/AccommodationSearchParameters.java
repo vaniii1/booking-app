@@ -1,11 +1,20 @@
 package vanii.bookingapp.dto.accomodation;
 
-public record AccommodationSearchParameters(
-        String[] type,
-        String[] location,
-        String[] min_daily_rate,
-        String[] max_daily_rate,
-        String[] min_available,
-        String[] amenities
-) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import vanii.bookingapp.dto.SearchParametersDto;
+
+@Data
+@Accessors(chain = true)
+public class AccommodationSearchParameters extends SearchParametersDto {
+    private String[] type;
+    private String[] location;
+    @JsonProperty("min_daily_rate")
+    private String[] minDailyRate;
+    @JsonProperty("max_daily_rate")
+    private String[] maxDailyRate;
+    @JsonProperty("min_available")
+    private String[] minAvailable;
+    private String[] amenities;
 }
