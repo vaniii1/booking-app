@@ -1,168 +1,614 @@
-﻿# booking application service 
+﻿# 🏨 Booking App
 
-<h2>Description: 📝</h2>
-<body><i>
-The Booking Service Application is a robust system built using Spring Boot technology.
-It facilitates a complete booking process, enabling admins and users to interact seamlessly.
-Admins (MANAGER authority) manage amenities and accommodations, while users (CUSTOMER authority) can book
-accommodations, make payments, and manage their bookings. The application integrates third-party APIs such as
-Telegram Bot API and Stripe API for enhanced functionality. For a comprehensive walkthrough,
-refer to the <a href="http://localhost:5606/booking-api/swagger-ui/index.html#/">Swagger Documentation</a>.
-</i></body>
+A RESTful booking application built with **Spring Boot 3**, enabling users to browse accommodations, make bookings, and process payments — with real-time Telegram notifications and Stripe integration.
 
-<h2>Features: ✨</h2>
-<body>
-<ul>
-<li><strong>Register and login system</strong>:<br>
-<em>If user doesn't match admin pattern `admin([1-9][0-9]?)@.*`, he/she gets CUSTOMER authority and is able to
-browse available accommodation and amenities, create bookings for selected accommodations and 
-process payments for bookings.<br> if user matches admin-pattern he/she gets MANAGER authority and in addition to all
-above, admin allows to create, update, and delete amenities and accommodations.<br>
-</em>
-</li>
-<li>
-<strong>Notification Bot</strong>:<br>
-<em>With Telegram Bot we can receive new notifications about what happened to Amenity, Accommodation, Booking or Payment.
-For example, created or deleted amenity, released accommodation, confirmed or canceled booking and payment.
-The bot is called `vanii_notification_bot`.<br>
-</em>
-</li>
-<li>
-<strong>Stripe API</strong>:<br>
-<em>Stripe simplifies and helps to manage and process payments. For example, after the user completes the payment,
-Stripe will redirect them back to either the success or cancel URL, based on the outcome of the payment process.
-</em>
-</li>
-</ul>
-</body>
+---
 
-<h2>Setting up: ✨</h2>
-<body><i>To be able to use the booking application, you need to have several services installed:</i></body>
+## 📖 Table of Contents
 
-- java (jdk 17)
-- maven (3.9.9)
-- docker (27.2.0)
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Domain Models](#domain-models)
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [API Reference](#api-reference)
+- [Security](#security)
+- [Database Schema](#database-schema)
+- [Notifications](#notifications)
+- [Tests](#tests)
+- [Swagger-UI](#swagger-ui)
 
-<body><i>Second thing to do is to set the environment variables to your .env file:</i></body>
+---
 
-`.env_template:`
-```angular2html
-POSTGRES_DATABASE=database_name
-POSTGRES_USER=my_db_user
-POSTGRES_PASSWORD=password
-POSTGRES_DOCKER_PORT=5432
-POSTGRES_LOCAL_PORT=2345
-SPRING_DOCKER_PORT=8080
-SPRING_LOCAL_PORT=0880
-DEBUG_PORT=5005
-JWT_SECRET_STRING=ilovedrinkingteanotcoffeeilovedrinkingteanotcoffeeilovedrinkingteanotcoffee
-STRIPE_API_KEY=sk_my_stripe_key
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-TELEGRAM_BOT_USERNAME=your_notification_bot
-ADMIN_CHAT_ID=admin_id
+## Overview
+
+Booking App is a backend REST API that allows:
+
+- **Customers** to register, browse accommodations, create bookings, and pay via Stripe
+- **Managers** to manage accommodations, amenities, and monitor all bookings and payments
+- **Admins** to receive real-time Telegram notifications about new and canceled bookings
+
+The API is documented with **Swagger / OpenAPI** and is accessible at `/booking-api/swagger-ui.html` when running.
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|---|---|
+| Language | Java 17 |
+| Framework | Spring Boot 3.2.4 |
+| Security | Spring Security + JWT (jjwt 0.12.5) |
+| Database | PostgreSQL |
+| Migrations | Liquibase |
+| ORM | Spring Data JPA / Hibernate |
+| Mapping | MapStruct 1.5.5 |
+| Payments | Stripe Java SDK 25.7.0 |
+| Notifications | Telegram Bots (telegrambots 5.5.0) |
+| API Docs | SpringDoc OpenAPI 2.2.0 |
+| Validation | Hibernate Validator |
+| Boilerplate | Lombok |
+| Testing | JUnit 5, Testcontainers, Spring Security Test |
+| Build | Maven + Checkstyle |
+
+---
+
+## Architecture
+
+The application follows a standard layered architecture:
+
+```
+Controller → Service → Repository → Database
+                ↓
+          Mapper (MapStruct)
+                ↓
+            DTO Layer
 ```
 
-- `SPRING_LOCAL_PORT` will be used in your endpoint locally, when you will send any requests. 
-- `POSTGRES_LOCAL_PORT` same idea as with SPRING_LOCAL_PORT, but gives access to the database when container is running.
-- `DEBUG_PORT` can be used to do some debugs (you need to add a new _remote JVM debug_ configuration).
-- `JWT_SECRET_STRING` used for initializing a secret key to handle JWT securely. 
-- `STRIPE_API_KEY` your stripe API secret key (if you want to use it locally test secret api key is fine).
-- `TELEGRAM_BOT_TOKEN` you get it from BotFather once you created your notification bot. 
+### **Architecture Diagram**
+A layered box diagram showing the architecture of the project with side APIs.
+<img src="src/main/resources/images/ArchitDiagram.png" alt="Architecture Diagram">
 
-_Once all is ready, you only need to create a `.jar` file (run `mvn clean package` in terminal),
-build/rebuild a docker image (run `docker-compose build` in terminal)
-and finally start a docker container (run `docker-compose up` in terminal).
-Now you can use this application locally on you computer._
+**Key packages:**
 
-<h2>Example os usage: ✨</h2>
+- `controller` — REST endpoints (AccommodationController, AmenityController, AuthenticationController, BookingController, PaymentController)
+- `service` — Business logic (with `Impl` classes)
+- `repository` — Spring Data JPA repositories + Specification pattern for dynamic search
+- `model` — JPA entities (Accommodation, Amenity, Booking, Payment, User, Role)
+- `dto` — Request/Response DTOs per domain
+- `mapper` — MapStruct mappers
+- `security` — JWT filter, CustomUserDetailsService, AuthenticationService
+- `config` — SecurityConfig, StripeConfig, TelegramBotConfig, OpenApiConfig
+- `client` — StripeClient, MyTelegramBot
+- `validation` — Custom validators (Email, AccommodationType)
+- `exception` — Global exception handler
 
-_You can call POST, PUT, PATCH, GET, DELETE request using this application. Some examples are present in the following table:_
+---
+
+## Domain Models
+
+### Accommodation
+| Field | Type | Notes |
+|---|---|---|
+| id | Long | Primary key |
+| type | Enum | `HOUSE`, `APARTMENT`, `CONDO`, `VACATION_HOME` |
+| location | String | Address / area |
+| size | String | e.g. "2BR", "Studio" |
+| dailyRate | BigDecimal | Price per night |
+| availability | Integer | Number of units available |
+| amenities | Set\<Amenity\> | Many-to-many |
+| isDeleted | boolean | Soft delete |
+
+### Booking
+| Field | Type | Notes |
+|---|---|---|
+| id | Long | Primary key |
+| checkInDate | LocalDate | |
+| checkOutDate | LocalDate | |
+| accommodation | Accommodation | FK |
+| user | User | FK |
+| status | Enum | `PENDING`, `CONFIRMED`, `CANCELED`, `EXPIRED` |
+| isDeleted | boolean | Soft delete |
+
+### Payment
+| Field | Type | Notes |
+|---|---|---|
+| id | Long | Primary key |
+| booking | Booking | FK |
+| user | User | FK |
+| sessionUrl | String | Stripe checkout URL |
+| sessionId | String | Stripe session ID |
+| amount | BigDecimal | |
+| status | Enum | `PENDING`, `PAID`, `EXPIRED`, `CANCELED` |
+| isDeleted | boolean | Soft delete |
+
+### User
+| Field | Type |
+|---|---|
+| id | Long |
+| email | String (unique) |
+| password | String (encoded) |
+| firstName | String |
+| lastName | String |
+| roles | Set\<Role\> |
+
+### Role
+Roles: `CUSTOMER`, `MANAGER`
+
+### Amenity
+| Field | Type |
+|---|---|
+| id | Long |
+| name | String |
+| description | String |
+
+---
+
+## Features
+
+### Accommodation Management
+- Create, read, update, and soft-delete accommodations (MANAGER only)
+- List all accommodations with pagination
+- Filter accommodations by amenity
+- Dynamic search by type, location, daily rate range, and minimum availability
+
+### Amenity Management
+- Full CRUD for amenities (create/update/delete restricted to MANAGER)
+- Publicly viewable
+
+### User Authentication
+- Register with email + password (custom email validation)
+- Login returns a signed JWT token
+- JWT-based stateless authentication on all protected endpoints
+
+### Booking Management
+- Customers can create, view, update, and delete their own bookings
+- Booking creation automatically decrements accommodation availability
+- Managers can query any user's bookings by user ID and status
+- Managers can update booking status (PATCH)
+- Expired booking detection via scheduled job
+#### Booking Flow Diagram
+<img src="src/main/resources/images/BookingLifeycle.png" alt="Booking Flow Diagram">
+
+### Payment Processing (Stripe)
+- Create a Stripe Checkout Session linked to a booking
+- Redirect-based success and cancel flows
+- Renew expired payment sessions
+- View payment history (own for customers, any user for managers)
+- Prevents booking if unpaid bookings exist (`UnpaidBookingException`)
+#### Payment Flow Diagram
+<img src="src/main/resources/images/PaymentLifecycle.png" alt="Payment Flow Diagram">
+
+### Notifications (Telegram)
+- Manager receives a Telegram message when a booking is created or canceled
+- Configured via bot token, username, and admin chat ID
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Java 17+
+- Maven 3.8+
+- Docker & Docker Compose (for PostgreSQL)
+- A Stripe account (test mode is fine)
+- A Telegram bot token (via [@BotFather](https://t.me/BotFather))
+
+### Clone & Run
+
+```bash
+git clone https://github.com/your-username/booking-app.git
+cd booking-app
+```
+
+Create a `.env` file in the project root (see [Environment Variables](#environment-variables)).
+
+Start the database:
+
+```bash
+docker-compose up -d
+```
+
+Build and run:
+
+```bash
+mvn clean install
+java -jar target/booking-app-0.0.1-SNAPSHOT.jar
+```
+
+The API will be available at: `http://localhost:8080/booking-api`
+
+Swagger UI: `http://localhost:8080/booking-api/swagger-ui.html`
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+# Database
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/booking_db
+SPRING_DATASOURCE_USERNAME=your_db_user
+SPRING_DATASOURCE_PASSWORD=your_db_password
+
+# JWT
+JWT_SECRET_STRING=your_very_long_secret_key_here
+
+# Stripe
+STRIPE_API_KEY=sk_test_...
+
+# Telegram
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_BOT_USERNAME=your_bot_username
+ADMIN_CHAT_ID=your_telegram_chat_id
+```
+
+> JWT tokens expire after `3,000,000` milliseconds (~50 minutes) by default.
+
+---
+
+## API Reference
+
+The base path for all endpoints is `/booking-api`.
+
+_You can call POST, PUT, PATCH, GET, DELETE requests using this application. All endpoints are listed in the following table:_
 
 <body>
-    <table>
-        <thead>
-            <tr>
-                <th>Action</th>
-                <th>Request Type</th>
-                <th>Path</th>
-                <th>RequestDTO</th>
-                <th>ResponseDTO</th>
-                <th>Required Authority</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Get an accommodation</td>
-                <td>GET</td>
-                <td>/booking-api/accommodations/{id}</td>
-                <td><i>EMPTY</i></td>
-                <td>AccommodationResponseDto</td>
-                <td>CUSTOMER</td>
-            </tr>
-            <tr>
-                <td>Register new User</td>
-                <td>POST</td>
-                <td>/booking-api/auth/register</td>
-                <td>RegistrationRequestDto</td>
-                <td>RegistrationResponseDto</td>
-                <td>CUSTOMER</td>
-            </tr>
-            <tr>
-                <td>Create new Payment</td>
-                <td>POST</td>
-                <td>/booking-api/payments</td>
-                <td>PaymentRequestDto</td>
-                <td>PaymentResponseDto</td>
-                <td>CUSTOMER</td>
-            </tr>
-            <tr>
-                <td>Create new Amenity</td>
-                <td>POST</td>
-                <td>/booking-api/amenities</td>
-                <td>AmenityRequestDto</td>
-                <td>AmenityResponseDto</td>
-                <td>MANAGER</td>
-            </tr>
-            <tr>
-                <td>Update status of Booking</td>
-                <td>PATCH</td>
-                <td>/booking-api/bookings/{id}</td>
-                <td>UpdateStatusDto</td>
-                <td><i>EMPTY</i></td>
-                <td>MANAGER</td>
-            </tr>
-            <tr>
-                <td>Update Amenity</td>
-                <td>PUT</td>
-                <td>/booking-api/amenities/{id}</td>
-                <td>AmenityRequestDto</td>
-                <td>AmenityResponseDto</td>
-                <td>MANAGER</td>
-            </tr>
-        </tbody>
-    </table>
+<table>
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>Request Type</th>
+      <th>Path</th>
+      <th>RequestDTO</th>
+      <th>ResponseDTO</th>
+      <th>Required Authority</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Authentication -->
+    <tr>
+      <td>Register new User</td>
+      <td>POST</td>
+      <td>/booking-api/auth/register</td>
+      <td>RegistrationRequestDto</td>
+      <td>RegistrationResponseDto</td>
+      <td>PUBLIC</td>
+    </tr>
+    <tr>
+      <td>User Login</td>
+      <td>POST</td>
+      <td>/booking-api/auth/login</td>
+      <td>LoginRequestDto</td>
+      <td>LoginResponseDto</td>
+      <td>PUBLIC</td>
+    </tr>
+    <!-- Accommodation -->
+    <tr>
+      <td>Create new Accommodation</td>
+      <td>POST</td>
+      <td>/booking-api/accommodations</td>
+      <td>AccommodationRequestDto</td>
+      <td>AccommodationResponseDto</td>
+      <td>MANAGER</td>
+    </tr>
+    <tr>
+      <td>Get an Accommodation</td>
+      <td>GET</td>
+      <td>/booking-api/accommodations/{id}</td>
+      <td><i>EMPTY</i></td>
+      <td>AccommodationResponseDto</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Get all Accommodations</td>
+      <td>GET</td>
+      <td>/booking-api/accommodations</td>
+      <td><i>EMPTY</i></td>
+      <td>List&lt;AccommodationResponseDto&gt;</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Get Accommodations by AmenityId</td>
+      <td>GET</td>
+      <td>/booking-api/accommodations/amenity/{amenityId}</td>
+      <td><i>EMPTY</i></td>
+      <td>List&lt;AccommodationWithoutAmenityIdsDto&gt;</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Search Accommodations</td>
+      <td>GET</td>
+      <td>/booking-api/accommodations/search</td>
+      <td>AccommodationSearchParameters</td>
+      <td>List&lt;AccommodationResponseDto&gt;</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Update Accommodation</td>
+      <td>PUT</td>
+      <td>/booking-api/accommodations/{id}</td>
+      <td>AccommodationRequestDto</td>
+      <td>AccommodationResponseDto</td>
+      <td>MANAGER</td>
+    </tr>
+    <tr>
+      <td>Delete Accommodation</td>
+      <td>DELETE</td>
+      <td>/booking-api/accommodations/{id}</td>
+      <td><i>EMPTY</i></td>
+      <td><i>EMPTY</i></td>
+      <td>MANAGER</td>
+    </tr>
+    <!-- Amenity -->
+    <tr>
+      <td>Create new Amenity</td>
+      <td>POST</td>
+      <td>/booking-api/amenities</td>
+      <td>AmenityRequestDto</td>
+      <td>AmenityResponseDto</td>
+      <td>MANAGER</td>
+    </tr>
+    <tr>
+      <td>Get an Amenity</td>
+      <td>GET</td>
+      <td>/booking-api/amenities/{id}</td>
+      <td><i>EMPTY</i></td>
+      <td>AmenityResponseDto</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Get all Amenities</td>
+      <td>GET</td>
+      <td>/booking-api/amenities</td>
+      <td><i>EMPTY</i></td>
+      <td>List&lt;AmenityResponseDto&gt;</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Update Amenity</td>
+      <td>PUT</td>
+      <td>/booking-api/amenities/{id}</td>
+      <td>AmenityRequestDto</td>
+      <td>AmenityResponseDto</td>
+      <td>MANAGER</td>
+    </tr>
+    <tr>
+      <td>Delete Amenity</td>
+      <td>DELETE</td>
+      <td>/booking-api/amenities/{id}</td>
+      <td><i>EMPTY</i></td>
+      <td><i>EMPTY</i></td>
+      <td>MANAGER</td>
+    </tr>
+    <!-- Booking -->
+    <tr>
+      <td>Create new Booking</td>
+      <td>POST</td>
+      <td>/booking-api/bookings</td>
+      <td>BookingRequestDto</td>
+      <td>BookingResponseDto</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Get a Booking</td>
+      <td>GET</td>
+      <td>/booking-api/bookings/{id}</td>
+      <td><i>EMPTY</i></td>
+      <td>BookingResponseDto</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Get my Bookings</td>
+      <td>GET</td>
+      <td>/booking-api/bookings/my</td>
+      <td><i>EMPTY</i></td>
+      <td>List&lt;BookingResponseDto&gt;</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Update Booking</td>
+      <td>PUT</td>
+      <td>/booking-api/bookings/{id}</td>
+      <td>BookingRequestDto</td>
+      <td>BookingResponseDto</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Get Bookings by Status and UserId</td>
+      <td>GET</td>
+      <td>/booking-api/bookings?user_id={id}&amp;status={status}</td>
+      <td><i>EMPTY</i></td>
+      <td>List&lt;BookingResponseDto&gt;</td>
+      <td>MANAGER</td>
+    </tr>
+    <tr>
+      <td>Update Status of Booking</td>
+      <td>PATCH</td>
+      <td>/booking-api/bookings/{id}</td>
+      <td>UpdateStatusDto</td>
+      <td><i>EMPTY</i></td>
+      <td>MANAGER</td>
+    </tr>
+    <tr>
+      <td>Delete Booking</td>
+      <td>DELETE</td>
+      <td>/booking-api/bookings/{id}</td>
+      <td><i>EMPTY</i></td>
+      <td><i>EMPTY</i></td>
+      <td>CUSTOMER</td>
+    </tr>
+    <!-- Payment -->
+    <tr>
+      <td>Create new Payment</td>
+      <td>POST</td>
+      <td>/booking-api/payments</td>
+      <td>PaymentRequestDto</td>
+      <td>PaymentResponseDto</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Successful Payment</td>
+      <td>PUT</td>
+      <td>/booking-api/payments/success?session_id={id}</td>
+      <td><i>EMPTY</i></td>
+      <td>PaymentResponseDto</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Cancel Payment</td>
+      <td>PUT</td>
+      <td>/booking-api/payments/cancel?session_id={id}</td>
+      <td><i>EMPTY</i></td>
+      <td>String</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Renew Payment</td>
+      <td>POST</td>
+      <td>/booking-api/payments/renew?session_id={id}</td>
+      <td><i>EMPTY</i></td>
+      <td>PaymentResponseDto</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Get my Payments</td>
+      <td>GET</td>
+      <td>/booking-api/payments/my</td>
+      <td><i>EMPTY</i></td>
+      <td>List&lt;PaymentResponseDto&gt;</td>
+      <td>CUSTOMER</td>
+    </tr>
+    <tr>
+      <td>Get Payments for certain User</td>
+      <td>GET</td>
+      <td>/booking-api/payments?user_id={id}</td>
+      <td><i>EMPTY</i></td>
+      <td>List&lt;PaymentResponseDto&gt;</td>
+      <td>MANAGER</td>
+    </tr>
+  </tbody>
+</table>
 </body>
 
-_Totally, this api has more than 25 different endpoints you can send a request to._
+---
 
-<h2>Project's Architecture ✨</h2>
-The Booking-API follows Three-Layer Architecture: 
-- Presentation Layer (Controller layer)
-- Business Logic Layer (Service layer)
-- Data Access Layer (Repository layer)
+## Security
 
-<body>
-<i><b>Benefits of using it:</b> <br>
-Firstly, with this architecture each layer has a specific responsibility, making the system easier to manage and
-maintain. Secondly, layers can be scaled independently of each other. For example, if we decide to add new logic
-to repository layer our service layer will remain untouched. Finally, it has a big influence on tests. Following this
-architecture it is much easier to test each layer independently.</i></body> 
+Authentication is handled via **JWT Bearer tokens**.
 
-<h2>Entities Relations ✨</h2>
-<img src="src/main/resources/images/erd.png" alt="erd" width="500">
+1. Register at `POST /auth/register` or login at `POST /auth/login`
+2. Copy the `token` value from the response
+3. Add it to all subsequent requests as a header:
+   ```
+   Authorization: Bearer <your_token_here>
+   ```
+#### JWT Auth Flow Diagram
+<img src="src/main/resources/images/jwtFlow.png" alt="JWT Auth Flow Diagram">
 
-<h2>Test Coverage ✨</h2>
-<body><i>The project has over 80 test methods which cover all architecture layers</i></body>
+**Role hierarchy:**
 
-<img src="src/main/resources/images/test-coverage.png" alt="tests" width="500">
+| Role | Can do |
+|---|---|
+| PUBLIC | Register, Login |
+| CUSTOMER | Browse accommodations & amenities, manage own bookings & payments |
+| MANAGER | Everything CUSTOMER can do + manage accommodations, amenities, view all bookings/payments |
 
+Passwords are stored using **BCrypt** encoding. Custom email validation is enforced on registration.
+
+---
+
+## Database Schema
+
+Managed by **Liquibase** with YAML changelogs. Tables created in order:
+
+1. `accommodations` — type, location, size, daily_rate, availability, is_deleted
+2. `amenities` — name, description, is_deleted
+3. `accommodation_amenity` — join table (many-to-many)
+4. `users` — email, password, first_name, last_name, is_deleted
+5. `roles` — role_name enum
+6. `user_role` — join table
+7. `bookings` — check_in_date, check_out_date, status, accommodation_id, user_id, is_deleted
+8. `payments` — status, booking_id, user_id, session_url, session_id, amount, is_deleted
+
+All entities use **soft delete** (`is_deleted` flag) rather than physical row removal.
+
+### **LogiPhysical Model**
+
+This is a **LogiPhysical** model representing the __booking__ database with entities and corresponding cardinalities.
+
+<img src="src/main/resources/images/logiPhysicalModel.png" alt="LogiPhysicalModel">
+
+---
+
+## Notifications
+
+The app integrates a **Telegram Bot** that sends messages to a configured admin chat when:
+
+- A new booking is created
+- A booking is canceled or expires
+
+Configure the bot in your `.env` file using the `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, and `ADMIN_CHAT_ID` variables. The chat ID can be obtained by messaging your bot and querying the Telegram Bot API's `getUpdates` endpoint.
+### Examples for some notifications
+<img src="src/main/resources/images/notification.PNG" alt="Notifications" width="500" height="800">
+
+---
+
+## Tests
+
+The project has three layers of automated tests covering controllers, services, and repositories. All tests run against a real PostgreSQL instance managed by **Testcontainers**, ensuring they reflect actual database behaviour rather than in-memory approximations.
+
+To run all tests:
+
+```bash
+mvn test
+```
+
+
+### Controller Tests (Integration)
+
+All controller tests use `@SpringBootTest(webEnvironment = RANDOM_PORT)` with a full Spring context, `MockMvc` wired through `springSecurity()`, and SQL scripts to seed/clean the database before and after each test. Authentication is handled via `@WithMockUser` for role-based endpoints, and via `SecurityContextHolder` injection for endpoints that read the currently authenticated user (e.g. `GET /bookings/my`).
+
+
+### Service Tests (Unit)
+
+Service tests use `@ExtendWith(MockitoExtension.class)` with `@Mock` for all dependencies and `@InjectMocks` for the implementation. No Spring context is loaded, making them fast and isolated. All collaborators are verified with `verifyNoMoreInteractions()` after each test.
+
+
+### Repository Tests (Slice)
+
+Repository tests use `@DataJpaTest` with `@AutoConfigureTestDatabase(replace = NONE)`, running against the real Testcontainers PostgreSQL instance. SQL scripts seed data at class or method level via `@Sql` annotations.
+
+
+### Test Coverage
+There are 83 tests that cover over 81% code lines of the whole application!
+<img src="src/main/resources/images/tests.png" alt="Test Coverage">
+
+---
+
+## Swagger-UI
+
+To be able to use a booking API in a convenient way, the swagger-ui was added. If the user forwards to 
+localhost:${SPRING_LOCAL_PORT}/booking-api/swagger-ui/index.html/ then the useful interface with full documentation appears.
+Here are some screenshot examples:
+
+### User registration
+**Input**
+<img src="src/main/resources/images/regInput.png" alt="Registration Input">
+**Output**
+<img src="src/main/resources/images/regOutput.png" alt="Registration Output">
+
+### Login with JWT token
+<img src="src/main/resources/images/login.png" alt="Login">
+
+### Create Amenity 
+**Input**
+<img src="src/main/resources/images/amenInput.png" alt="Amenity Input">
+**Output**
+
+User was not allowed to create a new amenity as it was not granted **MANAGER** authority.
+<img src="src/main/resources/images/amenOutput.png" alt="Amenity Output">
